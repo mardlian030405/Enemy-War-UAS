@@ -11,15 +11,33 @@ FPS = 60
 
 # Inisialisasi layar
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Game dengan Objek Rumah dan Batu")
+pygame.display.set_caption("Game dengan Level dan Pemenang")
 clock = pygame.time.Clock()
 
-# Kelas Pemain
-class Player:
+# Font
+font = pygame.font.Font(None, 36)
+
+# Fungsi untuk menggambar teks
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, True, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+
+# Kelas Dasar GameObject
+class GameObject:
     def __init__(self, x, y, width, height, image_path):
         self.rect = pygame.Rect(x, y, width, height)
         self.image = pygame.image.load(image_path)
         self.image = pygame.transform.scale(self.image, (width, height))
+
+    def draw(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
+# Kelas Pemain
+class Player(GameObject):
+    def __init__(self, x, y, width, height, image_path):
+        super().__init__(x, y, width, height, image_path)
         self.speed = 5
         self.hp = 500
 
@@ -36,25 +54,13 @@ class Player:
                 self.rect.topleft = initial_position
 
     def draw(self, surface):
-        surface.blit(self.image, (self.rect.x, self.rect.y))
+        super().draw(surface)
         draw_text(f"You: {self.hp} HP", font, (255, 255, 255), surface, 10, 10)
 
-# Kelas Objek
-class Obstacle:
-    def __init__(self, x, y, width, height, image_path):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, (width, height))
-
-    def draw(self, surface):
-        surface.blit(self.image, (self.rect.x, self.rect.y))
-
 # Kelas Musuh
-class Enemy:
+class Enemy(GameObject):
     def __init__(self, x, y, width, height, image_path, hp):
-        self.rect = pygame.Rect(x, y, width, height)
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, (width, height))
+        super().__init__(x, y, width, height, image_path)
         self.speed = 2
         self.hp = hp
 
@@ -84,44 +90,42 @@ class Enemy:
                 break
 
     def draw(self, surface):
-        surface.blit(self.image, (self.rect.x, self.rect.y))
+        super().draw(surface)
         draw_text(f"Enemy: {self.hp} HP", font, (255, 0, 0), surface, self.rect.x, self.rect.y - 20)
 
 # Kelas Utama Game
 class Game:
     def __init__(self):
         # Latar belakang
-        self.bg_image = pygame.image.load("map2.png")
+        self.bg_image = pygame.image.load("assets/map2.png")
         self.bg_image = pygame.transform.scale(self.bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
         # Pemain
-        self.player = Player(100, 100, 60, 60, "player.png")
+        self.player = Player(100, 100, 60, 60, "assets/player.png")
 
         # Musuh
         self.level = 1
         self.enemy = self.create_enemy()
 
-        # Tanaman
+        # Obstacle
         self.plants = [
-            Obstacle(random.randint(0, SCREEN_WIDTH - 32), random.randint(0, SCREEN_HEIGHT - 32), 46, 50, "pohon.png")
+            GameObject(random.randint(0, SCREEN_WIDTH - 32), random.randint(0, SCREEN_HEIGHT - 32), 60, 70, "assets/pohon.png")
             for _ in range(10)
         ]
-
-        # Rumah
         self.houses = [
-            Obstacle(200, 150, 140, 100, "rumah.png"),
-            Obstacle(500, 300, 140, 100, "rumah.png")
+            GameObject(200, 150, 140, 100, "assets/rumah.png"),
+            GameObject(500, 300, 140, 100, "assets/rumah.png")
         ]
-
-        # Batu
         self.rocks = [
-            Obstacle(random.randint(0, SCREEN_WIDTH - 40), random.randint(0, SCREEN_HEIGHT - 40), 40, 40, "batu.png")
+            GameObject(random.randint(0, SCREEN_WIDTH - 40), random.randint(0, SCREEN_HEIGHT - 40), 40, 40, "assets/batu.png")
             for _ in range(10)
         ]
 
     def create_enemy(self):
         enemy_hp = 50 + (self.level - 1) * 20
-        return Enemy(random.randint(0, SCREEN_WIDTH - 40), random.randint(0, SCREEN_HEIGHT - 40), 40, 40, "enemy.png", enemy_hp)
+        enemy_images = ["assets/enemy_level_1.png", "assets/enemy_level_2.png", "assets/enemy.png", "assets/enemy_level_5.png"]
+        enemy_image = enemy_images[min(self.level - 1, len(enemy_images) - 1)]
+        return Enemy(random.randint(0, SCREEN_WIDTH - 40), random.randint(0, SCREEN_HEIGHT - 40), 60, 60, enemy_image, enemy_hp)
 
     def check_battle(self):
         if self.player.rect.colliderect(self.enemy.rect):
@@ -129,21 +133,30 @@ class Game:
             self.player.hp -= 5
 
             if self.enemy.hp <= 0:
-                print(f"Enemy defeated! Level up to {self.level + 1}")
-                self.level += 1
-                self.enemy = self.create_enemy()
+                if self.level == 4:
+                    self.win_screen()
+                else:
+                    print(f"Enemy defeated! Level up to {self.level + 1}")
+                    self.level += 1
+                    self.enemy = self.create_enemy()
 
-        # Periksa jika pemain kalah
         if self.player.hp <= 0:
             self.game_over_screen()
 
     def game_over_screen(self):
-        screen.fill((0, 0, 0))  # Layar hitam
+        screen.fill((0, 0, 0))
         draw_text("GAME OVER", font, (255, 0, 0), screen, SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50)
         draw_text("Press R to Restart", font, (255, 255, 255), screen, SCREEN_WIDTH // 2 - 120, SCREEN_HEIGHT // 2)
         pygame.display.flip()
+        self.wait_for_restart()
 
-        # Tunggu pemain untuk memulai ulang
+    def win_screen(self):
+        screen.fill((0, 255, 0))
+        draw_text("YOU WIN!", font, (0, 0, 255), screen, SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 50)
+        pygame.display.flip()
+        self.wait_for_restart()
+
+    def wait_for_restart(self):
         waiting = True
         while waiting:
             for event in pygame.event.get():
@@ -155,39 +168,20 @@ class Game:
                     self.reset_game()
 
     def reset_game(self):
-        # Reset semua atribut permainan
-        self.player = Player(100, 100, 60, 60, "player.png")
-        self.level = 1
-        self.enemy = self.create_enemy()
-        self.plants = [
-            Obstacle(random.randint(0, SCREEN_WIDTH - 32), random.randint(0, SCREEN_HEIGHT - 32), 46, 50, "pohon.png")
-            for _ in range(10)
-        ]
-        self.houses = [
-            Obstacle(200, 150, 140, 100, "rumah.png"),
-            Obstacle(500, 300, 140, 100, "rumah.png")
-        ]
-        self.rocks = [
-            Obstacle(random.randint(0, SCREEN_WIDTH - 40), random.randint(0, SCREEN_HEIGHT - 40), 40, 40, "batu.png")
-            for _ in range(10)
-        ]
+        self.__init__()
 
     def run(self):
-        running = True
         obstacles = self.plants + self.houses + self.rocks
 
-        while running:
+        while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    pygame.quit()
+                    sys.exit()
 
             keys = pygame.key.get_pressed()
             self.player.move(keys, obstacles)
-
-            # Gerakan musuh
             self.enemy.move_towards_player(self.player, obstacles)
-
-            # Periksa battle
             self.check_battle()
 
             # Gambar latar belakang
@@ -204,22 +198,8 @@ class Game:
             for rock in self.rocks:
                 rock.draw(screen)
 
-            # Refresh layar
             pygame.display.flip()
             clock.tick(FPS)
-
-        pygame.quit()
-        sys.exit()
-
-# Fungsi untuk menggambar teks
-def draw_text(text, font, color, surface, x, y):
-    textobj = font.render(text, True, color)
-    textrect = textobj.get_rect()
-    textrect.topleft = (x, y)
-    surface.blit(textobj, textrect)
-
-# Font
-font = pygame.font.Font(None, 36)
 
 # Jalankan game
 if __name__ == "__main__":
