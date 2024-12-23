@@ -50,9 +50,9 @@ B. Cara Menjalankan Game
      git clone https://github.com/mardlian030405/Enemy-War-UAS.git
   
   5. Jalankan Game:
-     1) Pindah ke direktori proyek dan jalankan file utama:
-     2) cd Enemy-War-UAS
-     3) python main.py
+      1) Pindah ke direktori proyek dan jalankan file utama:
+      2) cd Enemy-War-UAS
+      3) python main.py
 
 Struktur Direktori
 
