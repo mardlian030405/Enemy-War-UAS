@@ -49,3 +49,11 @@ C. Kontrol
     S: Bergerak ke bawah
     
     D: Bergerak ke kanan
+
+Kelompok 08 D4 Manajemen Informatika 2023C
+
+    M. Mardlian Nurofiq/ 23091397105/ 2023C
+    
+    Widirga Putri Aditya Wardaningtyas/ 23091397079/ 2023C 
+    
+    Fathir Rahma Dani/ 23091397080/ 2023C 
