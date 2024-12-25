@@ -41,10 +41,7 @@ class GameObject:
 
 # Kelas Pemain
 class Player(GameObject):
-    """
-    Kelas yang merepresentasikan pemain, turunan dari GameObject.
-    Menambahkan atribut dan metode khusus seperti pergerakan dan HP.
-    """
+    
     def __init__(self, x, y, width, height, image_path):
         super().__init__(x, y, width, height, image_path)  # Memanggil konstruktor dari kelas induk
         self.speed = 5  # Kecepatan pemain
